@@ -82,7 +82,7 @@ pub mod canvas {
     impl Canvas {
         pub fn new(width: i32, height: i32) -> Canvas {
             let mut img = vec![];
-            for i in 0..height {
+            for _ in 0..height {
                 img.push(vec![Color::new((0.0, 0.0, 0.0)); width as usize]);
             }
 
@@ -98,20 +98,20 @@ pub mod canvas {
 
         pub fn write_pixel_f64(&mut self, x:f64, y: f64, color: Color) {
             let x = x as i32;
-            let y = y as i32;
-            let y = self.height - y;
+            let x = self.height - x;
+            let x = x as usize;
+            let y = y as usize;
 
-
-            self.write_pixel(x.try_into().unwrap(), y.try_into().unwrap(), color);
+            self.write_pixel(x, y, color);
         }
 
         pub fn write_to_ppm(&self) {
-            let header = format!("P3\n{} {}\n255", self.height, self.width);
+            let header = format!("P3\n{} {}\n255", self.width, self.height);
             let body = self.to_string();
 
             let content = format!("{}\n{}", header, body);
             let mut file = File::create("img.ppm").unwrap();
-            file.write_all(content.as_bytes());
+            file.write_all(content.as_bytes()).unwrap();
 
         }
 
@@ -127,15 +127,17 @@ pub mod canvas {
 
         fn row_to_string(&self, row: &Vec<Color>) -> String {
             let mut row_string = "".to_owned();
+            let mut index = 0;
             for color in row {
                 let c_str = &color.to_string();
 
-                // do something clever with slices to check this maybe?
-                if row_string.len() < 70 - c_str.len() {
+                if index < 70 - c_str.len() -1 {
                     row_string.push_str(c_str);
+                    index += c_str.len();
                 } else {
                     let newline_str = format!("\n{}",c_str);
                     row_string.push_str(&newline_str);
+                    index = 0;
                 }
             }
 
