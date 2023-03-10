@@ -1,21 +1,34 @@
-use raytracer::{add, normalize_vector};
-
+use raytracer::{add, normalize_vector, point, vector};
+use raytracer::canvas::Canvas;
+use raytracer::color::Color;
 fn main() {
-    let p = Projectile::new((0.0, 1.0, 0.0, 1.0),normalize_vector((1.0, 1.0, 0.0, 0.0)));
-    let e = Environment::new((0.0, -0.1, 0.0, 0.0), (-0.01, 0.0, 0.0, 0.0));
+
+    let start = point((0.0, 1.0, 0.0));
+    let velocity = normalize_vector(vector((1.0, 1.8, 0.0)));
+
+    let p = Projectile::new(start,velocity);
+
+    let gravity = vector((0.0, -0.1, 0.0));
+    let wind = vector((-0.01, 0.0, 0.0));
+    let e = Environment::new(gravity, wind);
+
+    let mut canvas = Canvas::new(900, 550);
 
     let i = 0;
-    let (proj, j) = update(&e, &p, i);
+    let (proj, j) = update(&e, &p, i, canvas);
 
     println!("Final position: {:?} Looped {} times", proj, j);
 }
 
-fn update(env: &Environment, proj: &Projectile, mut i: i32) -> (Projectile, i32) {
+fn update(env: &Environment, proj: &Projectile, mut i: i32, mut canvas: Canvas) -> (Projectile, i32) {
     let current = tick(env, proj);
     if current.position.1 > 0.0 {
         i += 1;
-        update(env, &current, i)
+        let color = Color::new((1.0, 0.8, 0.6));
+        canvas.write_pixel_f64(proj.position.0, proj.position.1, color);
+        update(env, &current, i, canvas)
     } else {
+        canvas.write_to_ppm();
         (current, i)
     }
 }
